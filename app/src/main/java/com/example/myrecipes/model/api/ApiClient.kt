@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 
 object ApiClient {
-    private const val BASE_URL = "https://kgtttq6tg9.execute-api.us-east-2.amazonaws.com/prod/"
+    private const val BASE_URL = "www.themealdb.com/api/json/v1/1/"
 
     object RetrofitClient {
 
