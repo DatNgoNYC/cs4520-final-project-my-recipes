@@ -6,8 +6,8 @@ import retrofit2.http.GET
 
 interface ApiService {
     @GET("random.php")
-    suspend fun getRandomRecipe(): Response<List<Recipe>>
+    suspend fun getRandomRecipe(): Response<MealResponse>
 
     @GET("random.php")
-    suspend fun getRecipeByName(name: String): Response<List<Recipe>>
+    suspend fun getRecipeByName(name: String): Response<MealResponse>
 }

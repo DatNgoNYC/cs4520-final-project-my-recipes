@@ -19,7 +19,7 @@ class RecipesRepository(context: Context) {
         return recipesDao.getRecipesByPage(pageSize, offset)
     }
 
-    suspend fun insertProduct(recipe: Recipe) {
+    suspend fun insertRecipes(recipe: Recipe) {
         recipesDao.insert(recipe)
     }
     suspend fun getRecipeByName(recipeName: String) {

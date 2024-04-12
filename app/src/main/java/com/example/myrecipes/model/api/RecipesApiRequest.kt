@@ -4,27 +4,27 @@ import com.example.myrecipes.model.database.Recipes.Recipe
 import java.util.logging.Logger
 
 class RecipesApiRequest {
-    private val apiService = ApiClient.ApiClient.apiService
+    private val apiService = ApiClient.apiService
     private val logger = Logger.getLogger("MyLogger")
 
-    // fetch the product from the api
-    suspend fun fetchProducts(): List<Recipe> {
+    // fetch the recieps from the api
+    suspend fun fetchRecipes(): List<Recipe> {
         try {
-            logger.info("Start fetching products")
+            logger.info("Start fetching recipes")
             val response = apiService.getRandomRecipe()
             if (response.isSuccessful) {
-                val recipeList = response.body()
-                if (recipeList != null) {
-                    logger.info("Products fetched successfully")
-                    return recipeList.distinctBy { it.idMeal }
+                val mealResponse = response.body()
+                if (mealResponse != null) {
+                    logger.info("Recipes fetched successfully")
+                    return mealResponse.meals
                 } else {
-                    logger.warning("Response body is null")
+                    logger.warning("Meal response body is null")
                 }
             } else {
-                logger.warning("Failed to fetch products: ${response.code()}")
+                logger.warning("Failed to fetch recipes: ${response.code()}")
             }
         } catch (e: Exception) {
-            logger.severe("Failed to fetch products: ${e.message}")
+            logger.severe("Failed to fetch recipes: ${e.message}")
         }
 
         return emptyList()
@@ -32,21 +32,21 @@ class RecipesApiRequest {
 
     suspend fun fetchProductsByName(name: String): List<Recipe> {
         try {
-            logger.info("Start fetching products")
+            logger.info("Start fetching recipes by name")
             val response = apiService.getRecipeByName(name)
             if (response.isSuccessful) {
-                val recipeList = response.body()
-                if (recipeList != null) {
-                    logger.info("Products fetched successfully")
-                    return recipeList.distinctBy { it.idMeal }
+                val mealResponse = response.body()
+                if (mealResponse != null) {
+                    logger.info("Recipes fetched successfully")
+                    return mealResponse.meals
                 } else {
-                    logger.warning("Response body is null")
+                    logger.warning("Meal response body is null")
                 }
             } else {
-                logger.warning("Failed to fetch products: ${response.code()}")
+                logger.warning("Failed to fetch recipes: ${response.code()}")
             }
         } catch (e: Exception) {
-            logger.severe("Failed to fetch products: ${e.message}")
+            logger.severe("Failed to fetch recipes: ${e.message}")
         }
 
         return emptyList()

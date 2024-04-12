@@ -4,5 +4,5 @@ import androidx.compose.runtime.Composable
 import com.example.myrecipes.modelview.RecipesListViewModel
 
 @Composable
-fun Login(modelViewModel: RecipesListViewModel) {
+fun Signup(modelViewModel: RecipesListViewModel) {
 }
