@@ -81,11 +81,12 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
                     WorkInfo.State.SUCCEEDED -> {
                         logger.info("Work request succeeded")
                         val outputData = workInfo.outputData
-                        val productsJson = outputData.getString("products")
+                        val productsJson = outputData.getString("Recipes")
+
                         if (productsJson != null){
-                            val products: List<Recipe> = convertJsonToProducts(productsJson)
+                            val recipes: List<Recipe> = convertJsonToProducts(productsJson)
                             _loading.value = false
-                            _recipes.value = products
+                            _recipes.value = recipes
                             _error.value = false
                         }
                     }

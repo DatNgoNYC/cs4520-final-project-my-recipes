@@ -39,4 +39,37 @@ data class Recipe(
     @ColumnInfo(name = "strImageSource") val strImageSource: String?,
     @ColumnInfo(name = "strCreativeCommonsConfirmed") val strCreativeCommonsConfirmed: Boolean?,
     @ColumnInfo(name = "dateModified") val dateModified: String?
-)
+) {
+    fun getMeasure(i: Int): String? {
+        return when (i) {
+            1 -> strMeasure1
+            2 -> strMeasure2
+            3 -> strMeasure3
+            4 -> strMeasure4
+            5 -> strMeasure5
+            6 -> strMeasure6
+            7 -> strMeasure7
+            8 -> strMeasure8
+            9 -> strMeasure9
+            10 -> strMeasure10
+            else -> null
+        }
+    }
+
+    fun getIngredient(i: Int): String? {
+        return when (i) {
+            1 -> strIngredient1
+            2 -> strIngredient2
+            3 -> strIngredient3
+            4 -> strIngredient4
+            5 -> strIngredient5
+            6 -> strIngredient6
+            7 -> strIngredient7
+            8 -> strIngredient8
+            9 -> strIngredient9
+            10 -> strIngredient10
+            else -> null
+        }
+    }
+
+}

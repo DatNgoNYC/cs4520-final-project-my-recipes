@@ -5,6 +5,7 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.compose.rememberNavController
 import androidx.work.WorkManager
+import com.bumptech.glide.Glide
 import com.example.myrecipes.view.navigation.AppNavHost
 
 class MainActivity : AppCompatActivity(){
@@ -13,7 +14,6 @@ class MainActivity : AppCompatActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         workManager = WorkManager.getInstance(applicationContext)
-
         setContent {
             AppNavHost(context = this, navController = rememberNavController(), application = application, workManager = workManager)
         }

@@ -34,17 +34,16 @@ class RefreshRecipesWorker (context: Context, workerParams: WorkerParameters) : 
                 CoroutineScope(Dispatchers.IO).launch {
                     logger.info("Fetching recipes in background...")
                     try {
-                        val products = fetchRecipe()
+                        val recipes = fetchRecipe()
                         logger.info("Recipes fetched")
                         logger.info("Start storing Recipes")
-                        products.forEach { product ->
-                            repository.insertRecipes(product)
+                        recipes.forEach { recipe ->
+                            repository.insertRecipes(recipe)
                         }
-
                         logger.info("Finish storing Recipes")
 
                         // Create an output data object and put the products in it
-                        outputData = Data.Builder().putString("Recipes", Gson().toJson(products)).build()
+                        outputData = Data.Builder().putString("Recipes", Gson().toJson(recipes)).build()
                     } catch (e: Exception) {
                         logger.warning(e.toString())
                     }
@@ -68,7 +67,6 @@ class RefreshRecipesWorker (context: Context, workerParams: WorkerParameters) : 
                         recipes.add(recipe)
                     }
                 }
-                logger.info(recipes.toString())
                 recipes
             } catch (e: Exception) {
                 logger.warning("Failed to fetch recipes: ${e.message}")
