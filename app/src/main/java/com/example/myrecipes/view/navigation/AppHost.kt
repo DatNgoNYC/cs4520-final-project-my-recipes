@@ -11,6 +11,7 @@ import androidx.work.WorkManager
 import com.example.myrecipes.modelview.RecipesListViewModel
 import com.example.myrecipes.view.UI.Home
 import com.example.myrecipes.view.UI.RecipeDetail
+import com.example.myrecipes.view.UI.RecipesList
 
 
 @Composable
@@ -37,6 +38,7 @@ fun AppNavHost(
         composable(NavigationItem.Signup.route) {
         }
         composable(NavigationItem.RecipeList.route) {
+            RecipesList(modelViewModel = recipeListViewModel)
         }
         composable(NavigationItem.RecipeDetail.route) {
             RecipeDetail(modelViewModel = recipeListViewModel)
