@@ -39,7 +39,7 @@ fun TextInputComponent(
                     }
                 }),
                 visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             )
         } else {
             TextField(

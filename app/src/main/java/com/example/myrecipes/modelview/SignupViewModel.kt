@@ -59,6 +59,7 @@ class SignupViewModel(
      */
     private fun clearInput() {
         setUsernameText("")
+        setEmailText("")
         setPasswordText("")
     }
 
@@ -76,7 +77,7 @@ class SignupViewModel(
      * if false, displays an error message
      */
     suspend fun isValidSignUp(): Boolean {
-        val emailRegex = "^[A-Za-z](.*)([@])(.+)(\\.)(.+)".toRegex()
+        val emailRegex = "^[A-Za-z0-9]*([@])(.+)(\\.)(.+)".toRegex()
         if (emailText.value.isEmpty() || !emailRegex.matches(emailText.value)) {
             _errorMessage.value = "Please use a valid email to sign up."
         } else if (usernameText.value.length < 3 || usernameText.value.length > 16) {
