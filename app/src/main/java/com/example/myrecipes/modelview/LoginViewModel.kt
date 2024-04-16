@@ -64,7 +64,7 @@ class LoginViewModel(
      * if false, displays an error message
      */
     suspend fun isValidCredentials(): Boolean {
-        val emailRegex = "^[A-Za-z](.*)([@])(.+)(\\.)(.+)".toRegex()
+        val emailRegex = "^[A-Za-z0-9]*([@])(.+)(\\.)(.+)".toRegex()
         if (emailText.value.isEmpty() || !emailRegex.matches(emailText.value)) {
             _errorMessage.value = "Please enter your email correctly."
         } else if (passwordText.value.isEmpty()) {
