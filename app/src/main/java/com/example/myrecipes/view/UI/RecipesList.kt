@@ -86,7 +86,7 @@ fun RecipesList(
                 Column(
                     modifier = Modifier.verticalScroll(rememberScrollState())
                 ) {
-                    Button(onClick = { modelViewModel.toggleFilterDialog() }) {
+                    Button(onClick = { modelViewModel.toggleFilterDialog() }, modifier = Modifier.padding(10.dp)) {
                         Text("Filter")
                     }
 
