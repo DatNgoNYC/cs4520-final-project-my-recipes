@@ -58,6 +58,14 @@ class LoginViewModel(
         clearError()
     }
 
+    suspend fun getUserId(): Long{
+        val user = userRepository.getUserByEmail(emailText.value)
+        if (user != null) {
+            return user.userId
+        }
+        return 0
+    }
+
     /**
      * checks if the user credentials are valid in the database
      * if true, clears the current input and returns true

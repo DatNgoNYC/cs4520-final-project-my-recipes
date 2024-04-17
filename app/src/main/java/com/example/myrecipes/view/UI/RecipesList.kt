@@ -1,5 +1,6 @@
 package com.example.myrecipes.view.UI
 
+import SaveRecipeButton
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -7,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -36,10 +37,16 @@ import coil.compose.rememberImagePainter
 import com.example.myrecipes.R
 import com.example.myrecipes.model.database.Recipes.Recipe
 import com.example.myrecipes.modelview.RecipesListViewModel
+import com.example.myrecipes.modelview.SavedRecipesViewModel
 import com.example.myrecipes.view.navigation.NavigationItem
 
 @Composable
-fun RecipesList(modelViewModel: RecipesListViewModel, navController: NavController) {
+fun RecipesList(
+    modelViewModel: RecipesListViewModel,
+    savedRecipesViewModel: SavedRecipesViewModel,
+    navController: NavController,
+    user_id: Long
+) {
     val productsState = modelViewModel.recipes.collectAsState()
     val loadingState = modelViewModel.loading.collectAsState()
     val errorState = modelViewModel.error.collectAsState()
@@ -77,10 +84,22 @@ fun RecipesList(modelViewModel: RecipesListViewModel, navController: NavControll
                     modifier = Modifier.verticalScroll(rememberScrollState())
                 ) {
                     products.forEach { recipe ->
-                        RecipeCard(recipe = recipe) {
+                        RecipeCard(recipe = recipe, modelView = savedRecipesViewModel, user_id = user_id, recipeListViewModel = modelViewModel, onClickHandler =  {
                             val route =
                                 NavigationItem.RecipeDetail.createRoute(recipeId = recipe.idMeal)
                             navController.navigate(route)
+                        })
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
+                        Button(onClick = {val route =
+                            NavigationItem.RecipeList.route
+                            navController.navigate(route) }) {
+                            Text("Home")
+                        }
+                        Button(onClick = {val route =
+                            NavigationItem.SavedRecipes.route
+                            navController.navigate(route) }) {
+                            Text("Saved")
                         }
                     }
                 }
@@ -91,7 +110,7 @@ fun RecipesList(modelViewModel: RecipesListViewModel, navController: NavControll
 }
 
 @Composable
-fun RecipeCard(recipe: Recipe, onClickHandler: () -> Unit) {
+fun RecipeCard(recipe: Recipe, onClickHandler: () -> Unit, modelView : SavedRecipesViewModel, user_id:Long, recipeListViewModel: RecipesListViewModel) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -125,7 +144,17 @@ fun RecipeCard(recipe: Recipe, onClickHandler: () -> Unit) {
                 style = MaterialTheme.typography.body2,
                 modifier = Modifier.padding(top = 2.dp)
             )
+            SaveRecipeButton(savedRecipesViewModel = modelView, recipeId=recipe.idMeal, user_id=user_id, recipesListViewModel = recipeListViewModel)
+
         }
+
+//        Column(
+//            modifier = Modifier
+//                .padding(start = 2.dp, top = 10.dp)
+//                .align(Alignment.Top)
+//        ) {
+//            SaveRecipeButton(savedRecipesViewModel = modelView, recipeId=recipe.idMeal, user_id=user_id)
+//        }
     }
 }
 

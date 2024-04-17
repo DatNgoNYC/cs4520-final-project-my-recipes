@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.myrecipes.R
 import com.example.myrecipes.modelview.LoginViewModel
+import com.example.myrecipes.modelview.SavedRecipesViewModel
 import com.example.myrecipes.view.UI.components.TextInputComponent
 import com.example.myrecipes.view.navigation.Screen
 import kotlinx.coroutines.launch
@@ -31,12 +32,14 @@ import kotlinx.coroutines.launch
 @Composable
 fun Login(
     viewModel: LoginViewModel/*= viewModel()*/,
+    savedRecipesViewModel : SavedRecipesViewModel,
     navController: NavHostController,
 ) {
     val context = LocalContext.current
     val emailTextState = viewModel.emailText.collectAsState()
     val passwordTextState = viewModel.passwordText.collectAsState()
     val errorMessageState = viewModel.errorMessage.collectAsState()
+    val user_id = savedRecipesViewModel.user_id.collectAsState()
 
     // displays Toast for error
     if (errorMessageState.value.isNotEmpty()) {
@@ -77,11 +80,15 @@ fun Login(
             onClick = {
                 coroutineScope.launch {
                     if (viewModel.isValidCredentials()) {
+                        val user_id = viewModel.getUserId()
+                        savedRecipesViewModel.updateUserId(user_id)
                         navController.navigate(Screen.RECIPE_LIST.route)
                     }
                 }
             },
-            modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth(0.8f)
+            modifier = Modifier
+                .padding(vertical = 4.dp)
+                .fillMaxWidth(0.8f)
         ) {
             Text(text = stringResource(id = R.string.login))
         }
@@ -91,7 +98,9 @@ fun Login(
                 viewModel.clearAll()
                 navController.popBackStack()
             },
-            modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth(0.8f)
+            modifier = Modifier
+                .padding(vertical = 4.dp)
+                .fillMaxWidth(0.8f)
         ) {
             Text(text = stringResource(id = R.string.back))
         }
