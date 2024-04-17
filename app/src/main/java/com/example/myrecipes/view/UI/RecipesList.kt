@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
+import androidx.compose.material.Checkbox
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -47,10 +49,11 @@ fun RecipesList(
     navController: NavController,
     user_id: Long
 ) {
-    val productsState = modelViewModel.recipes.collectAsState()
+    val productsState = modelViewModel.viewableRecipes.collectAsState()
     val loadingState = modelViewModel.loading.collectAsState()
     val errorState = modelViewModel.error.collectAsState()
     val pageState = modelViewModel.page.collectAsState()
+    val isfilterDialogueOpenState = modelViewModel.isFilterDialogOpen.collectAsState()
 
     // Access the values
     val products = productsState.value
@@ -83,6 +86,14 @@ fun RecipesList(
                 Column(
                     modifier = Modifier.verticalScroll(rememberScrollState())
                 ) {
+                    Button(onClick = { modelViewModel.toggleFilterDialog() }, modifier = Modifier.padding(10.dp)) {
+                        Text("Filter")
+                    }
+
+                    if (modelViewModel.isFilterDialogOpen.collectAsState().value) {
+                        FilterSelectionDialog(modelViewModel)
+                    }
+
                     products.forEach { recipe ->
                         RecipeCard(recipe = recipe, modelView = savedRecipesViewModel, user_id = user_id, recipeListViewModel = modelViewModel, onClickHandler =  {
                             val route =
@@ -107,6 +118,36 @@ fun RecipesList(
         }
     }
 
+}
+
+@Composable
+fun FilterSelectionDialog(viewModel: RecipesListViewModel) {
+    val categories = viewModel.getAllCategories().sorted()
+
+    AlertDialog(
+        onDismissRequest = { viewModel.toggleFilterDialog() },
+        title = { Text("Select Categories") },
+        text = {
+            Column {
+                categories.forEach { category ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = viewModel.isCategorySelected(category),
+                            onCheckedChange = { isSelected ->
+                                viewModel.updateCategorySelection(category, isSelected)
+                            }
+                        )
+                        Text(text = category)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = { viewModel.toggleFilterDialog() }) {
+                Text("Close")
+            }
+        }
+    )
 }
 
 @Composable
