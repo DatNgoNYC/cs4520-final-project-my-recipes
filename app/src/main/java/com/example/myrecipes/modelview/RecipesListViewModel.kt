@@ -92,7 +92,7 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
         _viewableRecipes.value = if (_selectedCategories.value.isEmpty()) {
             _recipes.value
         } else {
-            _viewableRecipes.value.filter { recipe ->
+            _recipes.value.filter { recipe ->
                 _selectedCategories.value.any { selectedCategory -> selectedCategory == recipe.strCategory }
             }
         }
