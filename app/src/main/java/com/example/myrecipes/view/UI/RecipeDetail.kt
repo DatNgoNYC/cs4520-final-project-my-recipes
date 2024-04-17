@@ -45,7 +45,12 @@ import kotlinx.coroutines.withContext
 
 
 @Composable
-fun RecipeDetail(modelViewModel: RecipesListViewModel, savedRecipesViewModel: SavedRecipesViewModel, recipeId: String, user_id: Long) {
+fun RecipeDetail(
+    modelViewModel: RecipesListViewModel,
+    savedRecipesViewModel: SavedRecipesViewModel,
+    recipeId: String,
+    user_id: Long
+) {
     val recipes = modelViewModel.recipes.collectAsState()
     val logger = Logger.getLogger("MyLogger")
     val recipe = recipes.value
@@ -94,17 +99,20 @@ fun RecipeDetail(modelViewModel: RecipesListViewModel, savedRecipesViewModel: Sa
             Row(
                 modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
             ) {
-                Image(
-                painter = rememberImagePainter(data = currentRecipe.strMealThumb),
-                contentDescription = "Recipe Image",
-                modifier = Modifier
-                    .size(400.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .padding(10.dp)
+                GlideImage(
+                    url = currentRecipe.strMealThumb, modifier = Modifier
+                        .size(400.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .padding(10.dp)
                 )
             }
 
-            SaveRecipeButton(savedRecipesViewModel = savedRecipesViewModel, recipeId=recipeId, user_id=user_id, recipesListViewModel = modelViewModel)
+            SaveRecipeButton(
+                savedRecipesViewModel = savedRecipesViewModel,
+                recipeId = recipeId,
+                user_id = user_id,
+                recipesListViewModel = modelViewModel
+            )
             RecipeIngredients(currentRecipe)
             Spacer(modifier = Modifier.height(16.dp))
             RecipeDirections(currentRecipe)
@@ -123,17 +131,23 @@ fun RecipeIngredients(recipe: Recipe) {
             ingredientMap[ingredient] = measure
         }
     }
-    Text(text = "Ingredients",
-        fontSize = 32.sp)
+    Text(
+        text = "Ingredients",
+        fontSize = 32.sp
+    )
     Spacer(modifier = Modifier.height(16.dp))
     ingredientMap.forEach { (ingredient, measure) ->
         Row(
             modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = ingredient,
-                fontSize = 18.sp)
-            Text(text = measure,
-                fontSize = 18.sp)
+            Text(
+                text = ingredient,
+                fontSize = 18.sp
+            )
+            Text(
+                text = measure,
+                fontSize = 18.sp
+            )
         }
     }
 }
@@ -143,14 +157,18 @@ fun RecipeDirections(recipe: Recipe) {
     Column(
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Text(text = "Directions",
-                fontSize = 32.sp)
+        Text(
+            text = "Directions",
+            fontSize = 32.sp
+        )
         Spacer(modifier = Modifier.height(16.dp))
         Row(
             modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
         ) {
-            Text(text = recipe.strInstructions,
-                    fontSize = 18.sp)
+            Text(
+                text = recipe.strInstructions,
+                fontSize = 18.sp
+            )
         }
     }
 }
