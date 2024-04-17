@@ -61,9 +61,15 @@ class RefreshRecipesWorker (context: Context, workerParams: WorkerParameters) : 
                         }
                         logger.info("Finish storing Recipes")
 
-                        // Create an output data object and put the products in it
-                        outputData = Data.Builder().putString("Recipes", Gson().toJson(recipes)).build()
-                    } catch (e: Exception) {
+                        try {
+                            // Create an output data object and put the products in it
+                            outputData =
+                                Data.Builder().putString("Recipes", Gson().toJson(recipes)).build()
+                        }catch (e: Exception){
+                            logger.warning(e.toString())
+                        }
+                    } catch (e: IllegalStateException) {
+                        logger.info("too big")
                         logger.warning(e.toString())
                     }
                 }.join() // Wait for the coroutine to complete

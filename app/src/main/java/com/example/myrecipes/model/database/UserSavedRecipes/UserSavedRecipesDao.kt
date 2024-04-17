@@ -12,10 +12,10 @@ import retrofit2.http.GET
 @Dao
 abstract interface UserSavedRecipesDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(user: UserSavedRecipes)
+    suspend fun insert(recipe: UserSavedRecipes)
 
     @Delete
-    suspend fun delete(user: UserSavedRecipes)
+    suspend fun delete(recipe: UserSavedRecipes)
 
     @Query("SELECT COUNT(*) FROM user_saved_recipes WHERE user_id = :userId AND recipe_id = :recipeId")
     fun getSavedRecipeCount(userId: Long, recipeId: String): Int

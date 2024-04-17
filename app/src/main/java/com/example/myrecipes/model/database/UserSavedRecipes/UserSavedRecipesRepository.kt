@@ -18,10 +18,6 @@ class UserSavedRecipesRepository(context: Context) {
         userSavedRecipesDao = database.UserSavedRecipesDao()
     }
 
-    suspend fun getRecipeListByUserId(userId : Long): List<String>?{
-        return userSavedRecipesDao.getRecipesRelationByUser(userId)
-    }
-
     suspend fun addSavedRecipes(savedRecipes : UserSavedRecipes){
         logger.info("adding saved recipes")
         userSavedRecipesDao.insert(savedRecipes)
@@ -36,10 +32,8 @@ class UserSavedRecipesRepository(context: Context) {
 
     }
 
-    suspend fun getSavedRecipe(savedRecipes : UserSavedRecipes): Int{
+    fun getSavedRecipe(savedRecipes : UserSavedRecipes): Int{
         return userSavedRecipesDao.getSavedRecipeCount(savedRecipes.userId, savedRecipes.recipeId)
     }
-
-
 
 }
