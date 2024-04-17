@@ -49,7 +49,7 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
 
     init {
         viewModelScope.launch {
-
+            fetchAdditionalRecipes()
         }
 
         val myWorkRequest: WorkRequest =
@@ -78,6 +78,7 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
                 .build()
 
         workManager.enqueue(refreshWorkRequest)
+
         workManager.getWorkInfoByIdLiveData(refreshWorkRequest.id).observeForever { workInfo ->
             if (workInfo != null) {
                 when (workInfo.state) {
@@ -113,6 +114,21 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
 
     fun getRecipeById(recipeId: String): Recipe? {
         return recipes.value.firstOrNull { it.idMeal == recipeId}
+    }
+
+    private suspend fun fetchAdditionalRecipes(){
+        for (i in 1..15) {
+            val recipesRetrieved = recipeApi.fetchRecipes()
+            recipesRetrieved.forEach { recipe ->
+                logger.info("start fetching additional recipes")
+                val updatedRecipes = _recipes.value.toMutableList()
+                updatedRecipes.add(recipe)
+                _recipes.value = updatedRecipes
+                repository.insertRecipes(recipe)
+                logger.info("finis fetching additional recipes")
+
+            }
+        }
     }
 
 }
