@@ -1,6 +1,7 @@
 package com.example.myrecipes.modelview
 
 import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -23,19 +24,15 @@ import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 import kotlin.math.log
 
-class SavedRecipesViewModel(application: Application) {
+class SavedRecipesViewModel(application: Application,
+                            val repository: UserSavedRecipesRepository
+    ) : AndroidViewModel(application){
     private val logger = Logger.getLogger("MyLogger")
     private val _recipes = MutableStateFlow<List<Recipe>>(emptyList())
     val recipes: StateFlow<List<Recipe>> = _recipes
 
     private val _user_id = MutableStateFlow<Long>(0)
     val user_id : StateFlow<Long> = _user_id
-
-    private var repository: UserSavedRecipesRepository
-
-    init {
-        repository = UserSavedRecipesRepository(application.applicationContext)
-    }
 
     fun updateUserId(userId: Long) {
         _user_id.value = userId
@@ -54,7 +51,7 @@ class SavedRecipesViewModel(application: Application) {
         }
     }
 
-    fun addRecipe(recipe: Recipe?) {
+    suspend fun addRecipe(recipe: Recipe?) {
         val updatedRecipes = _recipes.value.toMutableList()
         if (recipe !== null) {
             updatedRecipes.add(recipe)
@@ -65,10 +62,6 @@ class SavedRecipesViewModel(application: Application) {
     suspend fun removeSavedRecipes(user_id: Long, recipe_id: String){
         val recipe = UserSavedRecipes(user_id, recipe_id)
         repository.removeSavedRecipes(recipe)
-    }
-
-    suspend fun getListRecipeIdFromUserId(user_id: Long): List<String>?{
-        return repository.getRecipeListByUserId(user_id)
     }
 
     suspend fun getSavedRecipe(user_id: Long, recipe_id: String): Boolean{

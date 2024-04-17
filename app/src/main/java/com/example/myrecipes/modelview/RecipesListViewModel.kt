@@ -15,6 +15,7 @@ import androidx.work.WorkRequest
 import com.example.myrecipes.model.api.RecipesApiRequest
 import com.example.myrecipes.model.database.Recipes.Recipe
 import com.example.myrecipes.model.database.Recipes.RecipesRepository
+import com.example.myrecipes.model.database.UserSavedRecipes.UserSavedRecipesRepository
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +24,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 
-class RecipesListViewModel(application: Application, private val workManager: WorkManager) :
+class RecipesListViewModel(application: Application, private val workManager: WorkManager, val repository: RecipesRepository) :
     AndroidViewModel(application) {
     private val recipeApi: RecipesApiRequest = RecipesApiRequest()
     private val logger = Logger.getLogger("MyLogger")
@@ -39,8 +40,6 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
 
     private val _page = MutableStateFlow<Int?>(null)
     val page: StateFlow<Int?> = _page
-
-    private var repository: RecipesRepository
 
     private val constraints = Constraints.Builder()
         .setRequiresCharging(false)
@@ -63,7 +62,6 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
             myWorkRequest as PeriodicWorkRequest
         )
         initalRecipesFetching()
-        repository = RecipesRepository(application.applicationContext)
     }
 
     private fun convertJsonToProducts(json: String?): List<Recipe> {
@@ -129,6 +127,10 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
 
             }
         }
+    }
+
+    internal fun setRecipes(recipes: List<Recipe>) {
+        _recipes.value = recipes
     }
 
 }
