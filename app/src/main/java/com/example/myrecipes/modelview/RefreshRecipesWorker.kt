@@ -13,6 +13,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.io.ObjectOutputStream
 import java.util.logging.Logger
 import kotlin.math.log
 
@@ -27,6 +29,15 @@ class RefreshRecipesWorker (context: Context, workerParams: WorkerParameters) : 
         repository = RecipesRepository(context)
     }
 
+    fun calculateObjectSize(obj: Any): Int {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        val objectOutputStream = ObjectOutputStream(byteArrayOutputStream)
+        objectOutputStream.writeObject(obj)
+        objectOutputStream.flush()
+        objectOutputStream.close()
+        return byteArrayOutputStream.toByteArray().size
+    }
+
     override fun doWork(): Result {
         return try {
             var outputData: Data? = null // Declare outputData outside coroutine scope
@@ -37,8 +48,16 @@ class RefreshRecipesWorker (context: Context, workerParams: WorkerParameters) : 
                         val recipes = fetchRecipe()
                         logger.info("Recipes fetched")
                         logger.info("Start storing Recipes")
+                        var byteCount = 0
                         recipes.forEach { recipe ->
-                            repository.insertRecipes(recipe)
+                            val serializedSize = calculateObjectSize(recipe)
+                            byteCount += serializedSize
+                            logger.info(byteCount.toString())
+                            if (byteCount > 10240) {
+                                // Skip inserting this recipe
+                            } else {
+                                repository.insertRecipes(recipe)
+                            }
                         }
                         logger.info("Finish storing Recipes")
 
@@ -61,7 +80,7 @@ class RefreshRecipesWorker (context: Context, workerParams: WorkerParameters) : 
         return withContext(Dispatchers.IO) {
             var recipes: MutableList<Recipe> = mutableListOf()
             try {
-                for (i in 1..5) {
+                for (i in 1..4) {
                     val recipesRetrieved = recipeApi.fetchRecipes()
                     recipesRetrieved.forEach { recipe ->
                         recipes.add(recipe)

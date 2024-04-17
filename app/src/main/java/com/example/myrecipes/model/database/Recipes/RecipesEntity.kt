@@ -3,9 +3,10 @@ package com.example.myrecipes.model.database.Recipes
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.io.Serializable
 
 @Entity(tableName = "Recipes_table")
-data class Recipe(
+data class Recipe (
     @PrimaryKey val idMeal: String,
     @ColumnInfo(name = "strMeal") val strMeal: String,
     @ColumnInfo(name = "strDrinkAlternate") val strDrinkAlternate: String?,
@@ -39,7 +40,7 @@ data class Recipe(
     @ColumnInfo(name = "strImageSource") val strImageSource: String?,
     @ColumnInfo(name = "strCreativeCommonsConfirmed") val strCreativeCommonsConfirmed: Boolean?,
     @ColumnInfo(name = "dateModified") val dateModified: String?
-) {
+) : Serializable{
     fun getMeasure(i: Int): String? {
         return when (i) {
             1 -> strMeasure1
