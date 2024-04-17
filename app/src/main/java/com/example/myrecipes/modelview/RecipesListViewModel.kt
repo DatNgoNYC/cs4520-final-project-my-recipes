@@ -31,6 +31,9 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
     private val _recipes = MutableStateFlow<List<Recipe>>(emptyList())
     val recipes: StateFlow<List<Recipe>> = _recipes
 
+    private val _viewableRecipes = MutableStateFlow<List<Recipe>>(emptyList())
+    val viewableRecipes: StateFlow<List<Recipe>> = _viewableRecipes
+
     private val _loading = MutableStateFlow(true)
     val loading: StateFlow<Boolean> = _loading
 
@@ -39,6 +42,10 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
 
     private val _page = MutableStateFlow<Int?>(null)
     val page: StateFlow<Int?> = _page
+
+    private val _selectedCategories = MutableStateFlow<Set<String>>(setOf())
+    private val _isFilterDialogOpen = MutableStateFlow(false)
+    val isFilterDialogOpen: StateFlow<Boolean> = _isFilterDialogOpen
 
     private var repository: RecipesRepository
 
@@ -66,6 +73,40 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
         repository = RecipesRepository(application.applicationContext)
     }
 
+    fun toggleFilterDialog() {
+        _isFilterDialogOpen.value = !_isFilterDialogOpen.value
+    }
+
+    fun updateCategorySelection(category: String, isSelected: Boolean) {
+        val currentSelections = _selectedCategories.value.toMutableSet()
+        if (isSelected) {
+            currentSelections.add(category)
+        } else {
+            currentSelections.remove(category)
+        }
+        _selectedCategories.value = currentSelections
+        applyFilters()
+    }
+
+    private fun applyFilters() {
+        _viewableRecipes.value = if (_selectedCategories.value.isEmpty()) {
+            _recipes.value
+        } else {
+            _recipes.value.filter { recipe ->
+                _selectedCategories.value.any { selectedCategory -> selectedCategory == recipe.strCategory }
+            }
+        }
+    }
+
+    fun isCategorySelected(category: String): Boolean {
+        return category in _selectedCategories.value
+    }
+
+    // Assuming you have a method to get all distinct categories from recipes
+    fun getAllCategories(): List<String> {
+        return _recipes.value.map { it.strCategory }.distinct()
+    }
+
     private fun convertJsonToProducts(json: String?): List<Recipe> {
         val listType = object : TypeToken<List<Recipe>>() {}.type
         return Gson().fromJson(json, listType)
@@ -90,6 +131,7 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
                             val recipes: List<Recipe> = convertJsonToProducts(productsJson)
                             _loading.value = false
                             _recipes.value = recipes
+                            _viewableRecipes.value = recipes
                             _error.value = false
                         }
                     }
