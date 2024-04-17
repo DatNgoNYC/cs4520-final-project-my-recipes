@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 
-class RecipesListViewModel(application: Application, private val workManager: WorkManager, val repository: RecipesRepository) :
+class RecipesListViewModel(application: Application, private val workManager: WorkManager, private val repository: RecipesRepository) :
     AndroidViewModel(application) {
     private val recipeApi: RecipesApiRequest = RecipesApiRequest()
     private val logger = Logger.getLogger("MyLogger")
@@ -47,8 +47,6 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
     private val _selectedCategories = MutableStateFlow<Set<String>>(setOf())
     private val _isFilterDialogOpen = MutableStateFlow(false)
     val isFilterDialogOpen: StateFlow<Boolean> = _isFilterDialogOpen
-
-    private var repository: RecipesRepository
 
     private val constraints = Constraints.Builder()
         .setRequiresCharging(false)
