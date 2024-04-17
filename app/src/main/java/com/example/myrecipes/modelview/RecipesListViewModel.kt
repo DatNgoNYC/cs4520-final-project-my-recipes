@@ -48,8 +48,6 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
     private val _isFilterDialogOpen = MutableStateFlow(false)
     val isFilterDialogOpen: StateFlow<Boolean> = _isFilterDialogOpen
 
-    private var repository: RecipesRepository
-
     private val constraints = Constraints.Builder()
         .setRequiresCharging(false)
         .setRequiredNetworkType(NetworkType.CONNECTED)
