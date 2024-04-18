@@ -48,8 +48,6 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
     private val _isFilterDialogOpen = MutableStateFlow(false)
     val isFilterDialogOpen: StateFlow<Boolean> = _isFilterDialogOpen
 
-    private var repository: RecipesRepository
-
     private val constraints = Constraints.Builder()
         .setRequiresCharging(false)
         .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -67,7 +65,7 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
 
         workManager.enqueueUniquePeriodicWork(
             "product_refresh_work",
-            ExistingPeriodicWorkPolicy.UPDATE,
+            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
             myWorkRequest as PeriodicWorkRequest
         )
         initalRecipesFetching()
@@ -134,20 +132,32 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
                             _recipes.value = recipes
                             _viewableRecipes.value = recipes
                             _error.value = false
+                        }else{
+                            fetchProductsFromDatabase()
+                            _loading.value = false
+                            _error.value = false
                         }
                     }
 
                     WorkInfo.State.FAILED -> {
+                        logger.info("failed")
                         logger.warning("Work request failed")
-                        _error.value = true
-                    }
+                        fetchProductsFromDatabase()
+                        if (this._recipes.value.size != 0) {
+                            _error.value = false
+                            _loading.value = false
+                        }
+                     }
 
                     WorkInfo.State.CANCELLED -> {
                         logger.warning("Work request cancelled")
                     }
 
                     else -> {
-                        // Work request is still running or enqueued
+                        logger.info("else")
+                        fetchProductsFromDatabase()
+                        _loading.value = false
+                        _error.value = false
                     }
                 }
             }
@@ -175,6 +185,24 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
 
     internal fun setRecipes(recipes: List<Recipe>) {
         _recipes.value = recipes
+    }
+
+    // in case of there is no internet retrieve product from the databse
+    private fun fetchProductsFromDatabase() {
+        val currentPage = _page.value ?: 1
+
+        viewModelScope.launch {
+            try {
+                logger.info("start talking to the database")
+                val databaseProducts = repository.getRecipes(currentPage)
+                logger.info("Database fetch size: ${databaseProducts.size}")
+                _viewableRecipes.value = databaseProducts
+                logger.info(_viewableRecipes.value.toString())
+                logger.info("Successfully fetched products from database")
+            } catch (e: Exception) {
+                logger.warning("Failed to fetch products from database: ${e.message}")
+            }
+        }
     }
 
 }
