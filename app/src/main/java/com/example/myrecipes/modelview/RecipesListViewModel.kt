@@ -175,18 +175,19 @@ open class RecipesListViewModel(application: Application, private val workManage
                         //logger.info("failed")
                         //logger.warning("Work request failed")
                         fetchProductsFromDatabase()
-                        if (this._recipes.value.size != 0) {
+                        if (_uiState.value.recipes.size != 0) {
                             _uiState.update { currentState ->
-                              currentState.copy(
-                                  recipes = currentState.recipes,
-                                  viewableRecipes = currentState.viewableRecipes,
-                                  loading = false,
-                                  error = false,
-                                  page = currentState.page,
-                                  isFilterDialogOpen = currentState.isFilterDialogOpen
-                              )
+                                currentState.copy(
+                                    recipes = currentState.recipes,
+                                    viewableRecipes = currentState.viewableRecipes,
+                                    loading = false,
+                                    error = false,
+                                    page = currentState.page,
+                                    isFilterDialogOpen = currentState.isFilterDialogOpen
+                                )
                             }
                         }
+                    }
 
                     WorkInfo.State.CANCELLED -> {
 //                        logger.warning("Work request cancelled")
@@ -195,8 +196,16 @@ open class RecipesListViewModel(application: Application, private val workManage
                     else -> {
                         logger.info("else")
                         fetchProductsFromDatabase()
-                        _loading.value = false
-                        _error.value = false
+                        _uiState.update { currentState ->
+                            currentState.copy(
+                                recipes = currentState.recipes,
+                                viewableRecipes = currentState.viewableRecipes,
+                                loading = false,
+                                error = false,
+                                page = currentState.page,
+                                isFilterDialogOpen = currentState.isFilterDialogOpen
+                            )
+                        }
                     }
                 }
             }
@@ -247,7 +256,7 @@ open class RecipesListViewModel(application: Application, private val workManage
 
     // in case of there is no internet retrieve product from the databse
     private fun fetchProductsFromDatabase() {
-        val currentPage = _page.value ?: 1
+        val currentPage = uiState.value.page ?: 1
 
         viewModelScope.launch {
             try {
@@ -264,7 +273,7 @@ open class RecipesListViewModel(application: Application, private val workManage
                         isFilterDialogOpen = currentState.isFilterDialogOpen
                     )
                  }
-                logger.info(_viewableRecipes.value.toString())
+                logger.info(uiState.value.viewableRecipes.toString())
                 logger.info("Successfully fetched products from database")
             } catch (e: Exception) {
                 logger.warning("Failed to fetch products from database: ${e.message}")
