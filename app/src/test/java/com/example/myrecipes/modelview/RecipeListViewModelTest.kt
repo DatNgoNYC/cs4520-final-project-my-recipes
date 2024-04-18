@@ -1,100 +1,99 @@
-//package com.example.myrecipes.modelview
-//
-//import android.app.Application
-//import android.content.Context
-//import androidx.work.WorkManager
-//import com.example.myrecipes.model.database.Recipes.Recipe
-//import com.example.myrecipes.model.database.Recipes.RecipesRepository
-//import junit.framework.TestCase
-//import kotlinx.coroutines.ExperimentalCoroutinesApi
-//import kotlinx.coroutines.test.runTest
-//import org.junit.Before
-//import org.junit.Test
-//import org.junit.runner.RunWith
-//import org.mockito.Mock
-//import org.mockito.Mockito.mock
-//import org.mockito.Mockito.`when`
-//import org.mockito.junit.MockitoJUnitRunner
-//
-//
-//@OptIn(ExperimentalCoroutinesApi::class)
-//@RunWith(MockitoJUnitRunner::class)
-//class RecipeListViewModelTest {
-//    @Mock
-//    private lateinit var application: Application
-//
-//    @Mock
-//    private lateinit var recipeRepository: RecipesRepository
-//
-//    @Mock
-//    private lateinit var workManager: WorkManager
-//
-//    private lateinit var viewModel: RecipesListViewModel
-//
-//    private lateinit var recipe: Recipe
-//
-//    @Before
-//    fun setUp() {
-//        `when`(application.applicationContext).thenReturn(mock(Context::class.java))
-//
-//        workManager = WorkManager.getInstance(application.applicationContext)
-//        viewModel = RecipesListViewModel(application, workManager, recipeRepository)
-//
-//        recipe = Recipe(
-//            idMeal = "12345",
-//            strMeal = "Sample Recipe Name",
-//            strDrinkAlternate = null, // Nullable field
-//            strCategory = "Dessert",
-//            strArea = "International",
-//            strInstructions = "Mix all ingredients and bake for 45 minutes at 350 degrees.",
-//            strMealThumb = "file:///android_res/drawable/your_placeholder_image.png",
-//            strTags = "Easy, Quick",
-//            strYoutube = "https://youtube.com/samplevideo",
-//            strIngredient1 = "Flour",
-//            strIngredient2 = "Sugar",
-//            strIngredient3 = "Eggs",
-//            strIngredient4 = "Butter",
-//            strIngredient5 = "Baking Soda",
-//            strIngredient6 = "Salt",
-//            strIngredient7 = "Vanilla Extract",
-//            strIngredient8 = "Milk",
-//            strIngredient9 = "Cocoa Powder",
-//            strIngredient10 = "Chocolate Chips",
-//            strMeasure1 = "1 Cup",
-//            strMeasure2 = "200g",
-//            strMeasure3 = "3 Large",
-//            strMeasure4 = "100g",
-//            strMeasure5 = "1 Tsp",
-//            strMeasure6 = "1 Tsp",
-//            strMeasure7 = "2 Tsp",
-//            strMeasure8 = "200ml",
-//            strMeasure9 = "50g",
-//            strMeasure10 = "100g",
-//            strSource = "https://www.samplewebsite.com/recipes/sample-recipe-name",
-//            strImageSource = null, // Nullable field
-//            strCreativeCommonsConfirmed = null, // Nullable field
-//            dateModified = null // Nullable field
-//        )
-//    }
-//
-//    @Test
-//    fun `initial state`() = runTest {
-//        TestCase.assertTrue(viewModel.recipes.value.isEmpty())
-//        TestCase.assertEquals(false, viewModel.error.value)
-//        TestCase.assertEquals(false, viewModel.loading.value)
-//        TestCase.assertEquals(0, viewModel.page.value)
-//    }
-//
-//    @Test
-//    fun `fetch recipe`()= runTest {
-//        viewModel.setRecipes(listOf(recipe))
-//
-//        val recipeReceived = viewModel.getRecipeById("12345")
-//        if (recipeReceived != null) {
-//            TestCase.assertEquals(recipeReceived.idMeal, recipe.idMeal)
-//            TestCase.assertEquals(recipeReceived.dateModified, recipe.dateModified)
-//            TestCase.assertEquals(recipeReceived.strCategory, recipe.strCategory)
-//            TestCase.assertEquals(recipeReceived.strImageSource, recipe.strImageSource)
-//        }
-//    }
-//}
+package com.example.myrecipes.modelview
+
+import android.app.Application
+import android.content.Context
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import com.example.myrecipes.fakes.FakeRecipe
+import com.example.myrecipes.model.database.Recipes.Recipe
+import com.example.myrecipes.model.database.Recipes.RecipesRepository
+import junit.framework.TestCase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TestWatcher
+import org.junit.runner.Description
+import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mock
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
+import org.mockito.junit.MockitoJUnitRunner
+
+// overrides the main dispatcher for launching coroutine scope
+// https://stackoverflow.com/questions/58303961/kotlin-coroutine-unit-test-fails-with-module-with-the-main-dispatcher-had-faile
+@OptIn(ExperimentalCoroutinesApi::class)
+class MainDispatcherRule(
+    private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
+) : TestWatcher() {
+    override fun starting(description: Description) {
+        Dispatchers.setMain(testDispatcher)
+    }
+
+    override fun finished(description: Description) {
+        Dispatchers.resetMain()
+    }
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(MockitoJUnitRunner::class)
+class RecipeListViewModelTest {
+    // https://stackoverflow.com/questions/58057769/method-getmainlooper-in-android-os-looper-not-mocked-still-occuring-even-after-a
+    @get:Rule
+    val rule = InstantTaskExecutorRule()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    @Mock
+    private lateinit var application: Application
+
+    @Mock
+    private lateinit var recipeRepository: RecipesRepository
+
+    @Mock
+    private lateinit var workManager: WorkManager
+
+    private lateinit var viewModel: RecipesListViewModel
+
+    @Before
+    fun setUp() {
+        `when`(application.applicationContext).thenReturn(mock(Context::class.java))
+
+//        `when`(workManager.enqueueUniquePeriodicWork(anyString(), any(), any())).thenReturn()
+        `when`(workManager.getWorkInfoByIdLiveData(any())).thenReturn(MutableLiveData<WorkInfo>())
+        viewModel = RecipesListViewModel(application, workManager, recipeRepository)
+    }
+
+    @Test
+    fun `initial state`() = runTest {
+        TestCase.assertTrue(viewModel.recipes.value.isEmpty())
+        TestCase.assertEquals(false, viewModel.error.value)
+        TestCase.assertEquals(true, viewModel.loading.value)
+        TestCase.assertEquals(null, viewModel.page.value)
+    }
+
+    @Test
+    fun `fetch recipe`()= runTest {
+        viewModel.setRecipes(listOf(FakeRecipe))
+
+        val recipeReceived = viewModel.getRecipeById("12345")
+        if (recipeReceived != null) {
+            TestCase.assertEquals(recipeReceived.idMeal, FakeRecipe.idMeal)
+            TestCase.assertEquals(recipeReceived.dateModified, FakeRecipe.dateModified)
+            TestCase.assertEquals(recipeReceived.strCategory, FakeRecipe.strCategory)
+            TestCase.assertEquals(recipeReceived.strImageSource, FakeRecipe.strImageSource)
+        }
+    }
+}

@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 
-class RecipesListViewModel(application: Application, private val workManager: WorkManager, val repository: RecipesRepository) :
+class RecipesListViewModel(application: Application, private val workManager: WorkManager, private val repository: RecipesRepository) :
     AndroidViewModel(application) {
     private val recipeApi: RecipesApiRequest = RecipesApiRequest()
     private val logger = Logger.getLogger("MyLogger")
