@@ -69,7 +69,6 @@ class RecipeListViewModelTest {
 
     @Before
     fun setUp() {
-        `when`(application.applicationContext).thenReturn(mock(Context::class.java))
 
 //        `when`(workManager.enqueueUniquePeriodicWork(anyString(), any(), any())).thenReturn()
         `when`(workManager.getWorkInfoByIdLiveData(any())).thenReturn(MutableLiveData<WorkInfo>())
@@ -78,10 +77,10 @@ class RecipeListViewModelTest {
 
     @Test
     fun `initial state`() = runTest {
-        TestCase.assertTrue(viewModel.recipes.value.isEmpty())
-        TestCase.assertEquals(false, viewModel.error.value)
-        TestCase.assertEquals(true, viewModel.loading.value)
-        TestCase.assertEquals(null, viewModel.page.value)
+        TestCase.assertTrue(viewModel.uiState.value.recipes.isEmpty())
+        TestCase.assertEquals(false, viewModel.uiState.value.error)
+        TestCase.assertEquals(true, viewModel.uiState.value.loading)
+        TestCase.assertEquals(null, viewModel.uiState.value.page)
     }
 
     @Test
