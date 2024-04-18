@@ -1,6 +1,7 @@
 package com.example.myrecipes.view.UI
 
 import SaveRecipeButton
+import android.widget.ImageView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,8 +35,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import com.bumptech.glide.Glide
 import com.example.myrecipes.R
 import com.example.myrecipes.model.database.Recipes.Recipe
 import com.example.myrecipes.modelview.RecipesListViewModel
@@ -159,13 +162,12 @@ fun RecipeCard(recipe: Recipe, onClickHandler: () -> Unit, modelView : SavedReci
             .background(Color.LightGray)
             .clickable { onClickHandler() }
     ) {
-        Image(
-            painter = rememberImagePainter(data = recipe.strMealThumb),
-            contentDescription = "Recipe Image",
+        GlideImage(
+            url = recipe.strMealThumb,
             modifier = Modifier
-                .size(100.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .padding(10.dp)
+                .size(100.dp)  // Set the size of the image
+                .clip(RoundedCornerShape(10.dp))  // Apply rounded corners
+                .padding(10.dp)  // Apply padding around the image
         )
         Column(
             modifier = Modifier
@@ -197,6 +199,22 @@ fun RecipeCard(recipe: Recipe, onClickHandler: () -> Unit, modelView : SavedReci
 //            SaveRecipeButton(savedRecipesViewModel = modelView, recipeId=recipe.idMeal, user_id=user_id)
 //        }
     }
+}
+
+@Composable
+fun GlideImage(
+    url: String,
+    modifier: Modifier = Modifier
+) {
+    AndroidView(
+        factory = { context ->
+            ImageView(context)
+        },
+        modifier = modifier,
+        update = { imageView ->
+            Glide.with(imageView.context).load(url).into(imageView)
+        }
+    )
 }
 
 @Preview

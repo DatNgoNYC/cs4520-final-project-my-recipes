@@ -204,5 +204,4 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
             }
         }
     }
-
 }
