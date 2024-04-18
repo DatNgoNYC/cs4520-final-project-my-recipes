@@ -61,7 +61,7 @@ open class RecipesListViewModel(application: Application, private val workManage
 
         workManager.enqueueUniquePeriodicWork(
             "product_refresh_work",
-            ExistingPeriodicWorkPolicy.UPDATE,
+            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
             myWorkRequest as PeriodicWorkRequest
         )
         initalRecipesFetching()
@@ -156,29 +156,47 @@ open class RecipesListViewModel(application: Application, private val workManage
                                     isFilterDialogOpen = currentState.isFilterDialogOpen
                                 )
                             }
+                        }else{
+                            fetchProductsFromDatabase()
+                            _uiState.update { currentState ->
+                                currentState.copy(
+                                    recipes = currentState.recipes,
+                                    viewableRecipes = currentState.viewableRecipes,
+                                    loading = false,
+                                    error = false,
+                                    page = currentState.page,
+                                    isFilterDialogOpen = currentState.isFilterDialogOpen
+                                )
+                            }
                         }
                     }
 
                     WorkInfo.State.FAILED -> {
-//                        logger.warning("Work request failed")
-                        _uiState.update { currentState ->
-                            currentState.copy(
-                                recipes = currentState.recipes,
-                                viewableRecipes = currentState.viewableRecipes,
-                                loading = currentState.loading,
-                                error = true,
-                                page = currentState.page,
-                                isFilterDialogOpen = currentState.isFilterDialogOpen
-                            )
+                        //logger.info("failed")
+                        //logger.warning("Work request failed")
+                        fetchProductsFromDatabase()
+                        if (this._recipes.value.size != 0) {
+                            _uiState.update { currentState ->
+                              currentState.copy(
+                                  recipes = currentState.recipes,
+                                  viewableRecipes = currentState.viewableRecipes,
+                                  loading = false,
+                                  error = false,
+                                  page = currentState.page,
+                                  isFilterDialogOpen = currentState.isFilterDialogOpen
+                              )
+                            }
                         }
-                    }
 
                     WorkInfo.State.CANCELLED -> {
 //                        logger.warning("Work request cancelled")
                     }
 
                     else -> {
-                        // Work request is still running or enqueued
+                        logger.info("else")
+                        fetchProductsFromDatabase()
+                        _loading.value = false
+                        _error.value = false
                     }
                 }
             }
@@ -227,4 +245,30 @@ open class RecipesListViewModel(application: Application, private val workManage
         }
     }
 
+    // in case of there is no internet retrieve product from the databse
+    private fun fetchProductsFromDatabase() {
+        val currentPage = _page.value ?: 1
+
+        viewModelScope.launch {
+            try {
+                logger.info("start talking to the database")
+                val databaseProducts = repository.getRecipes(currentPage)
+                logger.info("Database fetch size: ${databaseProducts.size}")
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        recipes = currentState.recipes,
+                        viewableRecipes = databaseProducts,
+                        loading = false,
+                        error = false,
+                        page = currentState.page,
+                        isFilterDialogOpen = currentState.isFilterDialogOpen
+                    )
+                 }
+                logger.info(_viewableRecipes.value.toString())
+                logger.info("Successfully fetched products from database")
+            } catch (e: Exception) {
+                logger.warning("Failed to fetch products from database: ${e.message}")
+            }
+        }
+    }
 }

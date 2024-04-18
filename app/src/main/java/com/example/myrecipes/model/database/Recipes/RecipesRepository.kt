@@ -14,7 +14,7 @@ class RecipesRepository(context: Context) {
 
     // retrieve the product base on the page number
     suspend fun getRecipes(page: Int ): List<Recipe> {
-        val pageSize = 30
+        val pageSize = 15
         val offset = (page - 1) * pageSize
         return recipesDao.getRecipesByPage(pageSize, offset)
     }
