@@ -20,33 +20,29 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 
-class RecipesListViewModel(application: Application, private val workManager: WorkManager, private val repository: RecipesRepository) :
+open class RecipesListViewModel(application: Application, private val workManager: WorkManager, private val repository: RecipesRepository) :
     AndroidViewModel(application) {
     private val recipeApi: RecipesApiRequest = RecipesApiRequest()
     private val logger = Logger.getLogger("MyLogger")
 
-    private val _recipes = MutableStateFlow<List<Recipe>>(emptyList())
-    val recipes: StateFlow<List<Recipe>> = _recipes
-
-    private val _viewableRecipes = MutableStateFlow<List<Recipe>>(emptyList())
-    val viewableRecipes: StateFlow<List<Recipe>> = _viewableRecipes
-
-    private val _loading = MutableStateFlow(true)
-    val loading: StateFlow<Boolean> = _loading
-
-    private val _error = MutableStateFlow(false)
-    val error: StateFlow<Boolean> = _error
-
-    private val _page = MutableStateFlow<Int?>(null)
-    val page: StateFlow<Int?> = _page
-
     private val _selectedCategories = MutableStateFlow<Set<String>>(setOf())
-    private val _isFilterDialogOpen = MutableStateFlow(false)
-    val isFilterDialogOpen: StateFlow<Boolean> = _isFilterDialogOpen
+
+    data class UiState(
+        val recipes: List<Recipe> = emptyList(),
+        val viewableRecipes: List<Recipe> = emptyList(),
+        val loading: Boolean = true,
+        val error: Boolean = false,
+        val page: Int? = null,
+        val isFilterDialogOpen: Boolean = false,
+    )
+
+    private val _uiState = MutableStateFlow(UiState())
+    val uiState: StateFlow<UiState> = _uiState
 
     private val constraints = Constraints.Builder()
         .setRequiresCharging(false)
@@ -72,7 +68,16 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
     }
 
     fun toggleFilterDialog() {
-        _isFilterDialogOpen.value = !_isFilterDialogOpen.value
+        _uiState.update { currentState ->
+            currentState.copy(
+                recipes = currentState.recipes,
+                viewableRecipes = currentState.viewableRecipes,
+                loading = currentState.loading,
+                error = currentState.error,
+                page = currentState.page,
+                isFilterDialogOpen = !currentState.isFilterDialogOpen
+            )
+        }
     }
 
     fun updateCategorySelection(category: String, isSelected: Boolean) {
@@ -87,12 +92,24 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
     }
 
     private fun applyFilters() {
-        _viewableRecipes.value = if (_selectedCategories.value.isEmpty()) {
-            _recipes.value
+
+        val updatedViewableRecipe = if (_selectedCategories.value.isEmpty()) {
+            _uiState.value.recipes
         } else {
-            _recipes.value.filter { recipe ->
+            _uiState.value.recipes.filter { recipe ->
                 _selectedCategories.value.any { selectedCategory -> selectedCategory == recipe.strCategory }
             }
+        }
+
+        _uiState.update { currentState ->
+            currentState.copy(
+                recipes = currentState.recipes,
+                viewableRecipes = updatedViewableRecipe,
+                loading = currentState.loading,
+                error = currentState.error,
+                page = currentState.page,
+                isFilterDialogOpen = currentState.isFilterDialogOpen
+            )
         }
     }
 
@@ -102,7 +119,7 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
 
     // Assuming you have a method to get all distinct categories from recipes
     fun getAllCategories(): List<String> {
-        return _recipes.value.map { it.strCategory }.distinct()
+        return _uiState.value.recipes.map { it.strCategory }.distinct()
     }
 
     private fun convertJsonToProducts(json: String?): List<Recipe> {
@@ -128,20 +145,36 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
 
                         if (productsJson != null) {
                             val recipes: List<Recipe> = convertJsonToProducts(productsJson)
-                            _loading.value = false
-                            _recipes.value = recipes
-                            _viewableRecipes.value = recipes
-                            _error.value = false
+
+                            _uiState.update { currentState ->
+                                currentState.copy(
+                                    recipes = recipes,
+                                    viewableRecipes = recipes,
+                                    loading = false,
+                                    error = false,
+                                    page = currentState.page,
+                                    isFilterDialogOpen = currentState.isFilterDialogOpen
+                                )
+                            }
                         }
                     }
 
                     WorkInfo.State.FAILED -> {
-                        logger.warning("Work request failed")
-                        _error.value = true
+//                        logger.warning("Work request failed")
+                        _uiState.update { currentState ->
+                            currentState.copy(
+                                recipes = currentState.recipes,
+                                viewableRecipes = currentState.viewableRecipes,
+                                loading = currentState.loading,
+                                error = true,
+                                page = currentState.page,
+                                isFilterDialogOpen = currentState.isFilterDialogOpen
+                            )
+                        }
                     }
 
                     WorkInfo.State.CANCELLED -> {
-                        logger.warning("Work request cancelled")
+//                        logger.warning("Work request cancelled")
                     }
 
                     else -> {
@@ -153,7 +186,7 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
     }
 
     fun getRecipeById(recipeId: String): Recipe? {
-        return recipes.value.firstOrNull { it.idMeal == recipeId}
+        return _uiState.value.recipes.firstOrNull { it.idMeal == recipeId}
     }
 
     private suspend fun fetchAdditionalRecipes(){
@@ -161,18 +194,37 @@ class RecipesListViewModel(application: Application, private val workManager: Wo
             val recipesRetrieved = recipeApi.fetchRecipes()
             recipesRetrieved.forEach { recipe ->
                 logger.info("start fetching additional recipes")
-                val updatedRecipes = _recipes.value.toMutableList()
+                val updatedRecipes = uiState.value.recipes.toMutableList()
                 updatedRecipes.add(recipe)
-                _recipes.value = updatedRecipes
+
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        recipes = updatedRecipes,
+                        viewableRecipes = currentState.viewableRecipes,
+                        loading = currentState.loading,
+                        error = currentState.error,
+                        page = currentState.page,
+                        isFilterDialogOpen = currentState.isFilterDialogOpen
+                    )
+                }
                 repository.insertRecipes(recipe)
-                logger.info("finis fetching additional recipes")
+//                logger.info("finis fetching additional recipes")
 
             }
         }
     }
 
     internal fun setRecipes(recipes: List<Recipe>) {
-        _recipes.value = recipes
+        _uiState.update { currentState ->
+            currentState.copy(
+                recipes = recipes,
+                viewableRecipes = currentState.viewableRecipes,
+                loading = currentState.loading,
+                error = currentState.error,
+                page = currentState.page,
+                isFilterDialogOpen = currentState.isFilterDialogOpen
+            )
+        }
     }
 
 }

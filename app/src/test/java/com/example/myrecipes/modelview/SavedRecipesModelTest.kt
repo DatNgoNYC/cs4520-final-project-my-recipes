@@ -51,42 +51,42 @@ class SavedRecipesModelTest {
     @Test
     fun `initial state`() {
         // For recipes
-        TestCase.assertTrue(savedRecipesListViewModel.recipes.value.isEmpty())
+        TestCase.assertTrue(savedRecipesListViewModel.uiState.value.recipes.isEmpty())
         // For user_id
-        TestCase.assertEquals(0L, savedRecipesListViewModel.user_id.value)
+        TestCase.assertEquals(0L, savedRecipesListViewModel.uiState.value.userId)
     }
 
     @Test
     fun `test set updateUser_Id function`() {
-        TestCase.assertEquals(0L, savedRecipesListViewModel.user_id.value)
+        TestCase.assertEquals(0L, savedRecipesListViewModel.uiState.value.userId)
         savedRecipesListViewModel.updateUserId(10)
-        TestCase.assertEquals(10, savedRecipesListViewModel.user_id.value)
+        TestCase.assertEquals(10, savedRecipesListViewModel.uiState.value.userId)
     }
 
     @Test
     fun `test set add Recipe function`() = runTest {
-        TestCase.assertEquals(0, savedRecipesListViewModel.recipes.value.size)
+        TestCase.assertEquals(0, savedRecipesListViewModel.uiState.value.recipes.size)
 
         // Call the function under test
         savedRecipesListViewModel.addRecipe(FakeRecipe)
 
         // Verify the size of savedRecipeList
-        TestCase.assertEquals(1, savedRecipesListViewModel.recipes.value.size)
+        TestCase.assertEquals(1, savedRecipesListViewModel.uiState.value.recipes.size)
     }
 
     @Test
     fun `test set remove Recipe function`() = runTest {
-        TestCase.assertEquals(0, savedRecipesListViewModel.recipes.value.size)
+        TestCase.assertEquals(0, savedRecipesListViewModel.uiState.value.recipes.size)
 
         // Call the function under test
         savedRecipesListViewModel.addRecipe(FakeRecipe)
 
         // Verify the size of savedRecipeList
-        TestCase.assertEquals(1, savedRecipesListViewModel.recipes.value.size)
+        TestCase.assertEquals(1, savedRecipesListViewModel.uiState.value.recipes.size)
 
         savedRecipesListViewModel.removeRecipe(FakeRecipe)
 
-        TestCase.assertEquals(0, savedRecipesListViewModel.recipes.value.size)
+        TestCase.assertEquals(0, savedRecipesListViewModel.uiState.value.recipes.size)
 
 
     }
